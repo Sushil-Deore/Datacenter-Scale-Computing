@@ -1,2 +1,1 @@
-# Datacenter-Scale-Computing
-This repo is created to store the homework
+This file is created for lab 00: Git and Docker
