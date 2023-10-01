@@ -6,6 +6,8 @@ FROM python:3.11
 RUN pip install pandas
 RUN pip install numpy
 RUN pip install argparse
+RUN pip install sqlalchemy
+RUN pip install psycopg2
 
 # Setting the working directory to /app
 WORKDIR /app
