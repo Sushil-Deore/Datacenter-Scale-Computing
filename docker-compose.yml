@@ -1,0 +1,20 @@
+services:
+    db:
+      image: "postgres:16"
+      environment:
+        - POSTGRES_USER=sushil
+        - POSTGRES_PASSWORD=hunter2
+        - POSTGRES_DB=shelter
+      volumes:
+        - db_data:/var/lib/postgresql/data
+        - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      ports:
+        - "5432:5432"
+    etl:
+      build: .
+      command: ['python','pipeline.py','https://data.austintexas.gov/api/views/9t4d-g238/rows.csv']
+      depends_on:
+        - db 
+
+volumes:
+  db_data:
