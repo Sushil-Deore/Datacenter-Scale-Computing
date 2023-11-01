@@ -16,46 +16,39 @@ def transform_data(data):
     # Replacing unknown value from Column "Sex upon outcome" by NaN value to new "sex" column
     df["Sex"] = df["Sex upon Outcome"].replace("Unknown", np.nan)
 
-    df['ID'] = df['Animal ID']
-    df['outcome'] = df['Outcome Type']
-    df['Animal'] = df['Animal Type']
-    df['Dt'] = df['DateTime']
-    df['recorded_name'] = df['Name']
-    
-    cols_to_drop = ['Outcome Type','Animal Type','DateTime','Animal ID','Name']
-    df.drop(cols_to_drop,axis=1,inplace=True)
+    df = df.rename(columns={'Animal ID': 'animal_id', 
+                    'Outcome Type': 'outcometype', 
+                    'Animal Type' : 'animaltype', 
+                    'DateTime' : 'datetime',
+                    'Name': 'name',
+                    'Breed': 'breed',
+                    'Sex': 'sex', 
+                    'Color': 'color'})
 
     # Transforming dataframe to match schema of warehouse
 
-    df_outcome = df['outcome'].drop_duplicates().reset_index()
-    df_outcome['outcome_id'] = df_outcome.index + 1
-    df_outcome.drop('index',axis=1,inplace=True)
-    df = df.merge(df_outcome)
+    df_outcometype = df['outcometype'].drop_duplicates().reset_index()
+    df_outcometype.drop('index',axis=1,inplace=True)
 
-    df_animal = df['Animal'].drop_duplicates().reset_index()
-    df_animal['Animal_id'] = df_animal.index + 1
-    df_animal.drop('index',axis=1,inplace=True)
-    df = df.merge(df_animal)
+    df_animaltype = df['animaltype'].drop_duplicates().reset_index()
+    df_animaltype.drop('index',axis=1,inplace=True)
 
-    df_breed = df['Breed'].drop_duplicates().reset_index()
-    df_breed['Breed_id'] = df_breed.index + 1
+    df_breed = df['breed'].drop_duplicates().reset_index()
     df_breed.drop('index',axis=1,inplace=True)
-    df = df.merge(df_breed)
 
-    df_date = df['Dt'].drop_duplicates().reset_index()
-    df_date['date_id'] = df_date.index + 1
-    df_date.drop('index',axis=1,inplace=True)
-    df[["Month", "Year"]] = df["Dt"].str.split(" ", n=1, expand=True)
-    df[["Month", "Year"]] = df[["Month", "Year"]].drop_duplicates()
+    df_date = df['datetime'].drop_duplicates().reset_index()
+    df_date.drop(['index'],axis=1,inplace=True)
 
-    df = df.merge(df_date)
-    
-    # Retaining the useful columns
-    cols = ['recorded_name','date_id','outcome_id','Animal_id','Sex','Breed_id','Color','ID']
+    df_sex = df['sex'].drop_duplicates().reset_index()
+    df_sex.drop('index',axis=1,inplace=True)
 
+    df_color = df['color'].drop_duplicates().reset_index()
+    df_color.drop('index',axis=1,inplace=True)
+
+    cols = ['name', 'animal_id']
     df = df[cols]
-    
-    return df, df_animal,df_date,df_outcome,df_breed
+
+    return df_outcometype, df_animaltype,df_breed, df_date, df_sex, df_color, df
 
 def load_data(data):
     
@@ -63,17 +56,21 @@ def load_data(data):
 
     engine = create_engine(db_url)
 
-    df, df_animal,df_date,df_outcome,df_breed = data
-
-    df.to_sql(name= 'ADOPTION',con=engine, if_exists='append',index=False)
-    
-    df_animal.to_sql(name='ANIMAL',con=engine, if_exists='append',index=False)
+    df_outcometype, df_animaltype, df_breed, df_date, df_sex, df_color, df = data
  
-    df_outcome.to_sql(name='OUTCOME',con=engine, if_exists='append',index=False)
+    df_outcometype.to_sql(name='outcometypedim',con=engine, if_exists='append',index=False)
 
-    df_breed.to_sql(name='BREED',con=engine, if_exists='append',index=False)
+    df_animaltype.to_sql(name='animaltypedim',con=engine, if_exists='append',index=False)
 
-    df_date.to_sql(name='DATE',con=engine, if_exists='append',index=False)
+    df_breed.to_sql(name='breeddim',con=engine, if_exists='append',index=False)
+
+    df_sex.to_sql(name='sexdim',con=engine, if_exists='append',index=False)
+
+    df_color.to_sql(name='colordim',con=engine, if_exists='append',index=False)
+
+    df_date.to_sql(name='datedim',con=engine, if_exists='append',index=False)
+
+    df.to_sql(name= 'adoption',con=engine, if_exists='append',index=False)
     
 
 if __name__ == "__main__":
