@@ -1,1 +1,0 @@
-This file is created for lab 00: Git and Docker
